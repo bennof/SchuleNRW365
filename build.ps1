@@ -1,0 +1,1 @@
+csc -out:SchuleNRW365.exe -r:pinkserver.dll src\main.cs

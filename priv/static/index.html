@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="utf-8">
+    <title>Benjamin Benno Falkner</title> 
+    <meta name="description" content="my personal github index page">
+    <meta name="author" content="Benjamin Benno Falkner">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,600" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/tabularrasa.css"> 
+    <script src="js/recall.js"></script>
+    <script src="js/_.js"></script>
+
+    <style>
+        /* add your style here */
+        
+        
+    </style>
+
+    <script>
+        ReCall.Ready(function() {
+            ReCall.CleanCode('.clean-code');
+            //ReCall.AutoComplete('#search','#url', '#urlupdate');
+            //ReCall.Table('#table');
+
+            ReCall.OAuth.Init({
+                onSuccess: function(){
+                    var s = "";
+                    for (var k in ReCall.OAuth.Data) {
+                        console.log(k+": "+ReCall.OAuth.Data[k]);
+                    }
+                    document.getElementById('username').innerText = ReCall.OAuth.Data['id_token'].name;
+                },
+                onNone: ReCall.OAuth.Login,
+                URL: 'https://login.microsoftonline.com/26f7432b-b6b6-4291-adc0-090590f363cf/oauth2/v2.0/authorize',
+                Config: _js.Config,
+            });
+        });
+
+
+        function TestSuS(){
+            console.log("TestSuS");
+            ReCall.AJAX.Request("http://localhost:8080/schild/sus.json",{
+                onSuccess: function(r){
+                    console.log(r)
+                    //var input = JSON.parse(r);
+                    for (var k in r){
+                        c = r[k];
+                        document.getElementById("scanning").innerText = "("+k+")"+ c['Vorname']+" "+c['Name']+ " " + c['Klasse'];
+                        ReCall.OAuth.Request.Send("https://graph.microsoft.com/v1.0/users?$select=id,displayName,email,UEAN&$filter=displayName eq '"+ c['Vorname']+" "+c['Name']+"'",{
+                            onSuccess: function(res){
+                                document.getElementById('result').innerHTML += res + "<br>";
+                            },
+                        })
+
+                    }
+                
+                },
+                onError: function(txt,code){console.log("ERROR:"+txt+" ("+code+")")}
+            });
+        }
+    </script>
+</head>
+<body>
+    <!--side effect geek-->
+    <div class="sidebar">
+        <div class="sidebar-head"><img src="img/Logo128.png" /><span> Admin</span> </div>
+        <ul class="sidebar-menu scrollable pos-r ps ps--active-y">
+            <li><a href="#null"><i class="fa fa-home"></i><span> Dashboard</span></a></li>
+            <li><a href="#null"><i class="fa fa-envelope-o"></i><span> Email</span></a></li>
+            <li><a href="#null"><i class="fa fa-edit"></i><span> Compose</span></a></li>
+            <li><a href="#null"><i class="fa fa-calendar"></i><span> Calendar</span></a></li>
+            <li><a href="#null"><i class="fa fa-commenting-o"></i><span> Chat</span></a></li>
+            <li><a href="#null"><i class="fa fa-line-chart"></i><span> Charts</span></a></li>
+            <li><a href="#null"><i class="fa fa-pencil"></i><span> Forms</span></a></li>
+            <li><a href="#null"><i class="fa fa-home"></i><span> UI Elements</span></a></li>
+            <li><a href="#null"><i class="fa fa-table"></i><span> Tables</span></a>
+                <ul class="dropdown-menu">
+                    <li><a class="sidebar-link" href="basic-table.html">Basic Table</a></li>
+                    <li><a class="sidebar-link" href="datatable.html">Data Table</a></li>
+                </ul></li>
+            <li><a href="#null"><i class="fa fa-map-o"></i><span> Maps</span> <span class="arrow"><i class="ti-angle-right"></i></span></a>
+                <ul class="dropdown-menu">
+                    <li><a href="google-maps.html">Google Map</a></li>
+                    <li><a href="vector-maps.html">Vector Map</a></li>
+                </ul></li>
+            <li><a href="#null"><i class="fa fa-files-o"></i><span> Pages</span> <span class="arrow"><i class="ti-angle-right"></i></span></a>
+                <ul class="dropdown-menu">
+                    <li><a class="sidebar-link" href="404.html">404</a></li>
+                    <li><a class="sidebar-link" href="500.html">500</a></li>
+                    <li><a class="sidebar-link" href="signin.html">Sign In</a></li>
+                    <li><a class="sidebar-link" href="signup.html">Sign Up</a></li>
+                </ul></li>
+            <li><a href="#null"><i class="fa fa-server"></i><span> Multiple Levels</span> <span class="arrow"></span><i class="ti-angle-right"></i></span></a>
+                <ul class="dropdown-menu">
+                    <li class="nav-item dropdown"><a href="javascript:void(0);"><span>Menu Item</span></a></li>
+                    
+                </ul>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- Container -->
+<div class="container tabular has-fixed-menubar">
+        <div id="menubar" class="fixed toolbar clear">
+            <label for="show_menu" class="show media"><i class="fa fa-bars"></i> Benno</label>
+            <input type="checkbox" id="show_menu" class="show media" role="button">
+
+            <!-- App -->
+            <ul class="menu hidden media fleft clear">
+                <li><a href="index.html"><i class="fa fa-home"></i></a></li>
+                <li><a href="#projects">Bearbeiten</a>
+                    <ul>
+                        <li><a href="#mountain"></a>Erstelle Kurse</li>
+                        <li><a href="#rail">Erstelle Klassen</a></li>
+                        <li><a href="#" onclick="TestSuS()">Teste SuS</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+
+            <!-- User -->
+            <ul class="menu info">
+                <li><a href="#null">
+                    <i class="fa fa-bell" data-count="15"></i>
+                </a></li>
+                <li><a href="#null"><i class="fa fa-envelope" data-count="4"></i></a></li>
+                <li><a href="#null"><img src="img/User.png" /><span id="username"> Username</span></a>
+                    <ul><li><a href="#null">logout</a></li></ul>
+                </li>
+            </ul>
+        </div>
+    
+        <!-- App Content -->
+        <div id="content" class="section">
+            <div class="tabular mcollapse">
+                <div class="box indent">
+                    <div class="card">
+                        <h2>Test</h2>
+                        <h4>Nicht gefundene SuS</h4>
+                        <div id="scanning"></div>
+                        <div id="results"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        
+        <div class="footer">
+            <p>Copyright © 2018 <a href="mailto:benno.falkner@gmail.com">Benjamin 'Benno' Falkner</a>. All Rights reserved.</p>
+        </div>  
+    </div>
+</body>
+</html>

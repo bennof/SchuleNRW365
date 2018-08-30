@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="utf-8">
+    <title>Benjamin Benno Falkner</title> 
+    <meta name="description" content="my personal github index page">
+    <meta name="author" content="Benjamin Benno Falkner">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,600" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/tabularrasa.css"> 
+    <script src="js/recall.js"></script>
+    <script src="js/edu365.js"></script>
+    <script src="js/_.js"></script>
+
+    <!-- Script -->
+    <script>
+        function Print (result){document.getElementById('data').innerHTML += JSON.stringify(result) + '<br>';}
+        function PrintOBJ (result){
+            if(ReCall.IsString(result)){
+                document.getElementById('data').innerHTML += JSON.stringify(result) + '<br>';
+            } else {
+                var str = "JSON: <br>";
+                for(var key in result){
+                    if (Array.isArray(result[key])){
+                        str += ">>> "+key+": ... <br>";
+                        var a = result[key];
+                        for(i in a) {
+                            if(ReCall.IsString(a[i])){ 
+                                str += ">>> >>> "+a[i]+"<br>";
+                            } else {
+                                str += ">>> >>> "+JSON.stringify(a[i])+"<br>";
+                            }
+                        }
+                    } else {
+                        str += ">>> "+key+": "+JSON.stringify(result[key])+"<br>";
+                    }
+                }
+                document.getElementById('data').innerHTML += str + '<br>';
+            }
+        }
+        function PError (result){document.getElementById('data').innerHTML += '<strong style="color: red">ERROR: '+result+'</strong><br>';}
+        function getuser(givenname, surname){Edu365.User.Get(givenname, surname,Print,Error);}
+        function getteam(name){Edu365.Team.Get(name,Print,PError);}
+        function newteam(name){Edu365.Team.Create(name,Print,PError);}
+        function rmteam(teamname){Edu365.Team.Get(teamname,function(team){Edu365.Team.Delete(team,Print,PError);},PError);}
+        function getmember(teamname){Edu365.Team.Get(teamname,function(team){Edu365.Team.GetMember(team,Print,PError);},PError);}
+        function getowner(teamname){Edu365.Team.Get(teamname,function(team){Edu365.Team.GetOwner(team,Print,PError);},PError);}
+        function addmember(teamname,fusername,lusername){Edu365.Team.Get(teamname,function(team){Edu365.User.Get(fusername,lusername,function(user){Edu365.Team.AddMember(team,user,Print,PError);},PError);},PError);}
+        function addowner(teamname,fusername,lusername){Edu365.Team.Get(teamname,function(team){Edu365.User.Get(fusername,lusername,function(user){Edu365.Team.AddOwner(team,user,Print,PError);},PError);},PError);}
+        function rmmember(teamname,fusername,lusername){Edu365.Team.Get(teamname,function(team){Edu365.User.Get(fusername,lusername,function(user){Edu365.Team.RmMember(team,user,Print,PError);},PError);},PError);}
+        function rmowner(teamname,fusername,lusername){Edu365.Team.Get(teamname,function(team){Edu365.User.Get(fusername,lusername,function(user){Edu365.Team.RmOwner(team,user,Print,PError);},PError);},PError);}
+        
+        function call(method,url,body){
+            if(method=='GET') {
+                Edu365.Get(url,PrintOBJ,PError);
+            } else {
+                Edu365.Set(method,url,body,PrintOBJ,PError);
+            }
+        }
+
+
+        function checkstudents(){
+            ReCall.AJAX.Request("/schild/students.json",{
+                onSuccess: function(result){
+                    Edu365.Students.Check(JSON.parse(result),Print,PError);
+                }, onError: PError});
+        }
+
+        function checkteachers(){
+            ReCall.AJAX.Request("/schild/faculty.json",{
+                onSuccess:function(result){
+                    Edu365.Faculty.Check(JSON.parse(result),Print,PError);
+                }, onError: PError})
+        }
+
+        function checkcourses(){
+            ReCall.AJAX.Request("/schild/courses.json",{
+                onSuccess:function(result){
+                    Edu365.Faculty.CheckTeams(JSON.parse(result),coursenaming,Print,PError);
+                }, onError: PError})
+        }
+
+        function checkcoursess2(){
+            ReCall.AJAX.Request("/schild/s2/courses.json",{
+                onSuccess:function(result){
+                    Edu365.Faculty.CheckTeams(JSON.parse(result),coursenamings2,Print,PError);
+                }, onError: PError})
+        }
+
+        function mkclasses(){
+            ReCall.AJAX.Request("/schild/classes.json",{
+                onSuccess:function(result){
+                    Edu365.Faculty.CreateTeam(JSON.parse(result),function(elem){return "Klasse "+elem.class;},Print,PError);
+                }, onError: PError})
+        }
+
+        function fillclasses(){
+            ReCall.AJAX.Request("/schild/students.json",{
+                onSuccess:function(result){
+                    Edu365.Students.Assign(JSON.parse(result),function(elem){return "Klasse "+elem.class;},Print,PError);
+                }, onError: PError})
+        }
+
+        
+
+        function coursenaming(elem){
+            var name = elem.subject;
+            if (elem.subject_type == "PUK" && elem.subject != "VF" && elem.subject != "KL"){
+                return name+" "+elem.class+" "+elem.teacher;
+            } else if (elem.subject_type == "PUT"){
+                if(elem.grade=="07" && (elem.subject == "IF" || elem.subject=="ATX")){
+                    return;
+                }
+                return name+" "+elem.grade+" "+elem.teacher;
+            } else if (elem.subject_type == "WPI"){
+                return "WP-"+name+" "+elem.grade+" "+elem.teacher;
+            //} else if (elem.subject_type == "GKM" || elem.subject_type == "GKS"){
+            //    return name+" "+elem.grade+" "+elem.teacher;
+            } else if (elem.subject_type == "EGSN"){
+                return name+" "+elem.grade+" "+elem.teacher;
+            } else if (elem.subject_type == "G"){
+                if(elem.subject == "PH"){
+                    return name+" "+elem.grade+" "+elem.teacher;
+                } else {
+                    return name+" "+elem.grade+" GK "+elem.teacher;
+                }
+            } else if (elem.subject_type == "E"){
+                if(elem.subject == "PH"){
+                    return name+" "+elem.grade+" "+elem.teacher;
+                } else {
+                    return name+" "+elem.grade+" EK "+elem.teacher;
+                }
+            }
+
+            //return ">>>>> "+name+" "+elem.teacher+" "+elem.class+" "+elem.grade+" "+elem.subject_type;
+        }
+
+        function coursenamings2(elem){
+            if (elem.subject.startsWith("VX")) {return ;}
+            return elem.subject +" "+elem.grade+" "+elem.teacher;
+        }
+
+        function mkcourses(){
+            ReCall.AJAX.Request("/schild/courses.json",{
+                onSuccess:function(result){
+                    Edu365.Faculty.CreateTeam(JSON.parse(result),coursenaming,Print,PError);
+                    //testloop(JSON.parse(result),coursenaming,Print,PError);
+                }, onError: PError})
+        }
+
+        function mkcoursess2(){
+            ReCall.AJAX.Request("/schild/s2/courses.json",{
+                onSuccess:function(result){
+                    Edu365.Faculty.CreateTeam(JSON.parse(result),coursenamings2,Print,PError);
+                    //testloop(JSON.parse(result),coursenamings2,Print,PError);
+                }, onError: PError})
+        }
+
+        function fillcourses(start){
+            ReCall.AJAX.Request("/schild/allocation.json?start="+start,{
+                onSuccess:function(result){
+                    Edu365.Students.Assign(JSON.parse(result),coursenaming,Print,PError);
+                }, onError: PError})
+        }
+
+        function fillcoursess2(){
+            ReCall.AJAX.Request("/schild/s2/allocation.json",{
+                onSuccess:function(result){
+                    Edu365.Students.Assign(JSON.parse(result),coursenamings2,Print,PError);
+                }, onError: PError})
+        }
+
+
+
+
+
+
+        function testloop(data,func,print,err){
+            var elem = data.shift();
+            if(elem == null || ReCall.IsEmpty(elem)) {print('done');return;}
+            var name = func(elem); 
+            if (name)
+                print(name);
+            testloop(data,func,print,err)
+        }
+
+
+
+        ReCall.Ready(function(){
+            //init Edu365
+            Edu365.Init({
+                URL: 'https://login.microsoftonline.com/26f7432b-b6b6-4291-adc0-090590f363cf/oauth2/v2.0/authorize',
+                Config: _js.Config,
+                onNone: Edu365.Login,
+                onLogin: function(){
+                    document.getElementById('username').innerHTML = Edu365.Username(); 
+                    document.getElementById('data').innerHTML = ">>> Login: "+ Edu365.Username(); 
+                    //Edu365.Photo(function(result){
+                    //    document.getElementById("userimage").setAttribute("src", result);
+                    //});
+                }
+            });
+
+            document.getElementById("input").addEventListener("keyup", function(event) {
+                event.preventDefault();
+                if (event.keyCode === 13) {
+                    var input = document.getElementById('input').value;
+                    document.getElementById('data').innerHTML += '<p> ::: Edo365 '+input.trim()+'</p>';
+                    try {
+                        eval(input.trim());
+                    } catch(err) {PError(err.message);}
+                }
+            });
+        });
+    </script>
+
+</head>
+<body>
+    <!--side effect geek-->
+    <div class="sidebar">
+        <div class="sidebar-head"><img src="img/Logo128.png" /><span> Dashboard</span> </div>
+        <ul class="sidebar-menu scrollable pos-r ps ps--active-y">
+            <li><a href="#null"><i class="fa fa-home"></i><span> News</span></a></li>
+        </ul>
+    </div>
+</div>
+
+<!-- Container -->
+<div class="container tabular has-fixed-menubar">
+        <div id="menubar" class="fixed toolbar clear">
+            <label for="show_menu" class="show media"><i class="fa fa-bars"></i> </label>
+            <input type="checkbox" id="show_menu" class="show media" role="button">
+
+            <!-- App -->
+            <ul class="menu hidden media fleft clear">
+                <li><a href="/index.html?"><i class="fa fa-home"></i></a></li>
+                <li><a href="#projects">Bearbeiten</a>
+                    <ul>
+                        <li><a href="#mountain"></a>Erstelle Kurse</li>
+                        <li><a href="#rail">Erstelle Klassen</a></li>
+                        <li><a href="#" onclick="TestSuS()">Teste SuS</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+
+            <!-- User -->
+            <ul class="menu info">
+                <li><a href="https://aka.ms/mstfw"><i class="fa fa-bell" data-count="15"></i></a></li>
+                <li><a href="https://outlook.office365.com/owa/?realm=gesamtschule-stolberg.de&exsvurl=1&ll-cc=1033&modurl=0"><i class="fa fa-envelope" data-count="4"></i></a></li>
+                <li><a href="#logout"><img id="userimage" src="img/User.png" /><span id="username"> Username</span></a></li>
+            </ul>
+        </div>
+    
+        <!-- App Content -->
+        <div id="content" class="section">
+            <div class="tabular mcollapse">
+                <div class="box indent">
+                    <div class="card">
+                        <h2>Edu365 Shell</h2>
+                        <h4>Running ... </h4>
+                        <div id="data" style="overflow-y: scroll; height: 500px; width: 100%">
+                            ... please press Login
+                        </div>
+                        <label for="input">Command Line:</label>
+                        <input id="input" type="text"  style="width: 100%" autofocus>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        
+        <div class="footer">
+            <p>Copyright © 2018 <a href="mailto:benno.falkner@gmail.com">Benjamin 'Benno' Falkner</a>. All Rights reserved.</p>
+        </div>  
+    </div>
+</body>
+</html>
